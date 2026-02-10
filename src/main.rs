@@ -38,6 +38,11 @@ fn main() -> anyhow::Result<()> {
                     },
                     app::InputMode::Search => match key.code {
                         KeyCode::Esc => app.input_mode = app::InputMode::Normal,
+                        KeyCode::Enter => {
+                            app.perform_search();
+                            app.input.clear();
+                            app.input_mode = app::InputMode::Normal;
+                        }
                         KeyCode::Char(c) => app.input.push(c),
                         KeyCode::Backspace => {
                             app.input.pop();

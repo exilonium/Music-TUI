@@ -50,4 +50,15 @@ impl<'a> App<'a> {
         };
         self.list_state.select(Some(i));
     }
+    pub fn perform_search(&mut self) {
+        // some fake place holder results
+        self.items = vec![
+            "dzanum",
+            "never gonna give you up",
+            "somebody that i used to know",
+            "Angel with shotgun",
+        ];
+        //reset selection
+        self.list_state.select(Some(0));
+    }
 }

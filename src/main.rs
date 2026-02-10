@@ -7,7 +7,7 @@ use crossterm::{
 };
 use ratatui::{
     prelude::*,
-    widgets::{Block, Borders, List, ListItem, ListState},
+    widgets::{Block, Borders, List, ListItem, ListState, Paragraph},
 };
 
 struct App<'a> {
@@ -80,12 +80,17 @@ fn main() -> anyhow::Result<()> {
 
             frame.render_stateful_widget(list, chunks[0], &mut app.list_state.clone());
 
-            let status = Block::default().title("Now Playing").borders(Borders::ALL);
+            let selected_test = match app.list_state.selected() {
+                Some(i) => format!("Selected: {}", app.items[i]),
+                None => "Selected Nothing".to_string(),
+            };
+            let status = Paragraph::new(selected_test)
+                .block(Block::default().title("Now Playing").borders(Borders::ALL));
+
             frame.render_widget(status, chunks[1]);
         })?;
 
         // input handling
-        #[allow(clippy::collapsible_if)]
         if event::poll(Duration::from_millis(200))? {
             if let Event::Key(key) = event::read()? {
                 match key.code {
@@ -104,3 +109,4 @@ fn main() -> anyhow::Result<()> {
     terminal.show_cursor()?;
     Ok(())
 }
+

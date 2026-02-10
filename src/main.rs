@@ -10,6 +10,46 @@ use ratatui::{
     widgets::{Block, Borders, List, ListItem, ListState},
 };
 
+struct App<'a> {
+    items: Vec<&'a str>,
+    list_state: ratatui::widgets::ListState,
+}
+
+impl<'a> App<'a> {
+    fn new() -> Self {
+        let items = vec!["coffee", "Ghost", "Understand", "CHIHIRO"];
+        let mut list_state = ListState::default();
+        list_state.select(Some(0));
+        Self { items, list_state }
+    }
+    fn next(&mut self) {
+        let i = match self.list_state.selected() {
+            Some(i) => {
+                if i >= self.items.len() - 1 {
+                    i
+                } else {
+                    i + 1
+                }
+            }
+            None => 0,
+        };
+        self.list_state.select(Some(i));
+    }
+    fn prev(&mut self) {
+        let i = match self.list_state.selected() {
+            Some(i) => {
+                if i == 0 {
+                    0
+                } else {
+                    i - 1
+                }
+            }
+            None => 0,
+        };
+        self.list_state.select(Some(i));
+    }
+}
+
 fn main() -> anyhow::Result<()> {
     enable_raw_mode()?;
     let mut stdout = io::stdout();
@@ -17,14 +57,12 @@ fn main() -> anyhow::Result<()> {
 
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
+    let mut app = App::new();
 
-    let items = vec!["coffee", "Ghost", "Understand", "CHIHIRO"];
-    let mut list_state = ListState::default();
-    list_state.select(Some(0));
     loop {
         terminal.draw(|frame| {
             let area = frame.area();
-            let items: Vec<ListItem> = items.iter().map(|i| ListItem::new(*i)).collect();
+            let items: Vec<ListItem> = app.items.iter().map(|i| ListItem::new(*i)).collect();
 
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
@@ -40,7 +78,7 @@ fn main() -> anyhow::Result<()> {
                 .highlight_style(Style::default().add_modifier(Modifier::REVERSED))
                 .highlight_symbol(">> ");
 
-            frame.render_stateful_widget(list, chunks[0], &mut list_state.clone());
+            frame.render_stateful_widget(list, chunks[0], &mut app.list_state.clone());
 
             let status = Block::default().title("Now Playing").borders(Borders::ALL);
             frame.render_widget(status, chunks[1]);
@@ -52,34 +90,10 @@ fn main() -> anyhow::Result<()> {
             if let Event::Key(key) = event::read()? {
                 match key.code {
                     KeyCode::Char('q') => break,
-                    KeyCode::Char('j') | KeyCode::Down => {
-                        let i = match list_state.selected() {
-                            Some(i) => {
-                                if i >= items.len() - 1 {
-                                    i
-                                } else {
-                                    i + 1
-                                }
-                            }
-                            None => 0,
-                        };
-                        list_state.select(Some(i));
-                    }
+                    KeyCode::Char('j') | KeyCode::Down => app.next(),
 
-                    KeyCode::Char('k') | KeyCode::Up => {
-                        let i = match list_state.selected() {
-                            Some(i) => {
-                                if i == 0 {
-                                    0
-                                } else {
-                                    i - 1
-                                }
-                            }
-                            None => 0,
-                        };
-                        list_state.select(Some(i));
-                    }
-                    _ => {}
+                    KeyCode::Char('k') | KeyCode::Up => app.prev(),
+                    _ => (),
                 }
             }
         }
@@ -90,4 +104,3 @@ fn main() -> anyhow::Result<()> {
     terminal.show_cursor()?;
     Ok(())
 }
-

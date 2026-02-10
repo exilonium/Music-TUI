@@ -1,8 +1,15 @@
 use ratatui::widgets::ListState;
 
+pub enum InputMode {
+    Normal,
+    Search,
+}
+
 pub struct App<'a> {
     pub items: Vec<&'a str>,
     pub list_state: ListState,
+    pub input_mode: InputMode,
+    pub input: String,
 }
 
 impl<'a> App<'a> {
@@ -10,7 +17,12 @@ impl<'a> App<'a> {
         let items = vec!["coffee", "Ghost", "Understand", "CHIHIRO"];
         let mut list_state = ListState::default();
         list_state.select(Some(0));
-        Self { items, list_state }
+        Self {
+            items,
+            list_state,
+            input_mode: InputMode::Normal,
+            input: String::new(),
+        }
     }
     pub fn next(&mut self) {
         let i = match self.list_state.selected() {

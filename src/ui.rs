@@ -4,6 +4,7 @@ use ratatui::{
 };
 
 use crate::App;
+use crate::app::InputMode;
 
 pub fn draw(frame: &mut Frame, app: &mut App) {
     let area = frame.area();
@@ -25,11 +26,15 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
 
     frame.render_stateful_widget(list, chunks[0], &mut app.list_state.clone());
 
-    let selected_test = match app.list_state.selected() {
-        Some(i) => format!("Selected: {}", app.items[i]),
-        None => "Selected Nothing".to_string(),
+    let bottom_text = match app.input_mode {
+        InputMode::Normal => match app.list_state.selected() {
+            Some(i) => format!("Selected: {}", app.items[i]),
+            None => "Selected Nothing".to_string(),
+        },
+        InputMode::Search => format!("Search: {}", app.input),
     };
-    let status = Paragraph::new(selected_test)
+
+    let status = Paragraph::new(bottom_text)
         .block(Block::default().title("Now Playing").borders(Borders::ALL));
 
     frame.render_widget(status, chunks[1]);

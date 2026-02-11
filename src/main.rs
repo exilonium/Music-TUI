@@ -1,3 +1,4 @@
+mod api;
 mod app;
 mod ui;
 use app::{Action, App};
@@ -11,7 +12,8 @@ use crossterm::{
     terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
 };
 
-fn main() -> anyhow::Result<()> {
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
     enable_raw_mode()?;
     let mut stdout = io::stdout();
     execute!(stdout, EnterAlternateScreen)?;
@@ -52,5 +54,9 @@ fn main() -> anyhow::Result<()> {
     disable_raw_mode()?;
     execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
     terminal.show_cursor()?;
+
+    // just for testing that the api stuff works
+    let songs = api::songs::search("lofi").await?;
+    println!("{:#?}", songs);
     Ok(())
 }

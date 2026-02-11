@@ -47,7 +47,7 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
         InputMode::Search => "Type to search • Enter submit • Esc cancel",
     };
     let playing_text = match app.now_playing {
-        Some(song) => format!("🎧 {}", song),
+        Some(song) => format!("🎧 {} [{}s]", song, app.playback_seconds),
         None => "no song yapping".to_string(),
     };
     let bottom_text = format!(

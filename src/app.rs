@@ -32,6 +32,7 @@ pub struct App<'a> {
     pub input: String,
     pub now_playing: Option<&'a str>,
     pub current_view: View,
+    pub playback_seconds: u64,
 }
 
 impl<'a> App<'a> {
@@ -46,6 +47,7 @@ impl<'a> App<'a> {
             input: String::new(),
             now_playing: None,
             current_view: View::Queue,
+            playback_seconds: 0,
         }
     }
     pub fn next(&mut self) {
@@ -95,7 +97,11 @@ impl<'a> App<'a> {
                 Action::SubmitSearch => self.play_selected(),
                 Action::SwitchResultView => self.current_view = View::Results,
                 Action::SwitchQueueView => self.current_view = View::Queue,
-                Action::Tick => {}
+                Action::Tick => {
+                    if self.now_playing.is_some() {
+                        self.playback_seconds += 1;
+                    }
+                }
                 _ => {}
             },
             InputMode::Search => match action {
@@ -117,6 +123,7 @@ impl<'a> App<'a> {
     fn play_selected(&mut self) {
         if let Some(i) = self.list_state.selected() {
             self.now_playing = Some(self.items[i]);
+            self.playback_seconds = 0; // this is basically a timer reset
         }
     }
 }

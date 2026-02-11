@@ -1,6 +1,6 @@
 mod app;
 mod ui;
-use app::App;
+use app::{Action, App};
 
 use ratatui::prelude::*;
 use std::{io, time::Duration};
@@ -27,28 +27,19 @@ fn main() -> anyhow::Result<()> {
         #[allow(clippy::collapsible_if)]
         if event::poll(Duration::from_millis(200))? {
             if let Event::Key(key) = event::read()? {
-                match app.input_mode {
-                    app::InputMode::Normal => match key.code {
-                        KeyCode::Char('/') => app.input_mode = app::InputMode::Search,
-                        KeyCode::Char('q') => break,
-                        KeyCode::Char('j') | KeyCode::Down => app.next(),
-
-                        KeyCode::Char('k') | KeyCode::Up => app.prev(),
-                        _ => (),
-                    },
-                    app::InputMode::Search => match key.code {
-                        KeyCode::Esc => app.input_mode = app::InputMode::Normal,
-                        KeyCode::Enter => {
-                            app.perform_search();
-                            app.input.clear();
-                            app.input_mode = app::InputMode::Normal;
-                        }
-                        KeyCode::Char(c) => app.input.push(c),
-                        KeyCode::Backspace => {
-                            app.input.pop();
-                        }
-                        _ => {}
-                    },
+                let action = match key.code {
+                    KeyCode::Char('/') => Action::EnterSearch,
+                    KeyCode::Char('q') => Action::Quit,
+                    KeyCode::Char('j') | KeyCode::Down => Action::Down,
+                    KeyCode::Char('k') | KeyCode::Up => Action::Up,
+                    KeyCode::Esc => Action::ExitSearch,
+                    KeyCode::Enter => Action::SubmitSearch,
+                    KeyCode::Char(c) => Action::InputChar(c),
+                    KeyCode::Backspace => Action::BackSpace,
+                    _ => Action::None,
+                };
+                if app.handle_action(action) {
+                    break;
                 }
             }
         }

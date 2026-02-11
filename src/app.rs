@@ -1,5 +1,17 @@
 use ratatui::widgets::ListState;
 
+pub enum Action {
+    Quit,
+    Down,
+    Up,
+    EnterSearch,
+    ExitSearch,
+    SubmitSearch,
+    InputChar(char),
+    BackSpace,
+    None,
+}
+
 pub enum InputMode {
     Normal,
     Search,
@@ -60,5 +72,30 @@ impl<'a> App<'a> {
         ];
         //reset selection
         self.list_state.select(Some(0));
+    }
+    pub fn handle_action(&mut self, action: Action) -> bool {
+        match self.input_mode {
+            InputMode::Normal => match action {
+                Action::Quit => return true,
+                Action::Down => self.next(),
+                Action::Up => self.prev(),
+                Action::EnterSearch => self.input_mode = InputMode::Search,
+                _ => {}
+            },
+            InputMode::Search => match action {
+                Action::ExitSearch => self.input_mode = InputMode::Normal,
+                Action::SubmitSearch => {
+                    self.perform_search();
+                    self.input.clear();
+                    self.input_mode = InputMode::Normal;
+                }
+                Action::InputChar(c) => self.input.push(c),
+                Action::BackSpace => {
+                    self.input.pop();
+                }
+                _ => {}
+            },
+        }
+        false
     }
 }

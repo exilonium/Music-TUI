@@ -22,6 +22,7 @@ pub struct App<'a> {
     pub list_state: ListState,
     pub input_mode: InputMode,
     pub input: String,
+    pub now_playing: Option<&'a str>,
 }
 
 impl<'a> App<'a> {
@@ -34,6 +35,7 @@ impl<'a> App<'a> {
             list_state,
             input_mode: InputMode::Normal,
             input: String::new(),
+            now_playing: None,
         }
     }
     pub fn next(&mut self) {
@@ -80,6 +82,7 @@ impl<'a> App<'a> {
                 Action::Down => self.next(),
                 Action::Up => self.prev(),
                 Action::EnterSearch => self.input_mode = InputMode::Search,
+                Action::SubmitSearch => self.play_selected(),
                 _ => {}
             },
             InputMode::Search => match action {
@@ -97,5 +100,10 @@ impl<'a> App<'a> {
             },
         }
         false
+    }
+    fn play_selected(&mut self) {
+        if let Some(i) = self.list_state.selected() {
+            self.now_playing = Some(self.items[i]);
+        }
     }
 }

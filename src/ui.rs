@@ -27,8 +27,8 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
     frame.render_stateful_widget(list, chunks[0], &mut app.list_state.clone());
 
     let bottom_text = match app.input_mode {
-        InputMode::Normal => match app.list_state.selected() {
-            Some(i) => format!("Selected: {}", app.items[i]),
+        InputMode::Normal => match app.now_playing {
+            Some(song) => format!("Now Playing: {}", song),
             None => "Selected Nothing".to_string(),
         },
         InputMode::Search => format!("Search: {}", app.input),

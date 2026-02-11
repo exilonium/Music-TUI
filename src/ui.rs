@@ -19,7 +19,7 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
             let list = List::new(items)
                 .block(
                     Block::default()
-                        .title("Music-TUI (1* Queue, 2- Results | - j/k to move, q to quit")
+                        .title("Music-TUI (1* Queue, 2- Results")
                         .borders(Borders::all()),
                 )
                 .highlight_style(Style::default().add_modifier(Modifier::REVERSED))
@@ -28,23 +28,35 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
         }
         View::Results => {
             let block = Block::default()
-                .title("Music-TUI (1- Queue, 2* Results | - j/k to move, q to quit")
+                .title("Music-TUI (1- Queue, 2* Results")
                 .borders(Borders::all())
                 .borders(Borders::ALL);
             frame.render_widget(block, chunks[0]);
         }
     }
-
-    let bottom_text = match app.input_mode {
-        InputMode::Normal => match app.now_playing {
-            Some(song) => format!("Now Playing: {}", song),
-            None => "Playing Nothing".to_string(),
-        },
-        InputMode::Search => format!("Search: {}", app.input),
+    let mode_text = match app.input_mode {
+        InputMode::Normal => "Normal",
+        InputMode::Search => "Search",
     };
+    let view_text = match app.current_view {
+        View::Results => "Results",
+        View::Queue => "Queue",
+    };
+    let hints = match app.input_mode {
+        InputMode::Normal => "j/k move • / search • Enter play • 1/2 switch view • q quit",
+        InputMode::Search => "Type to search • Enter submit • Esc cancel",
+    };
+    let playing_text = match app.now_playing {
+        Some(song) => format!("🎧 {}", song),
+        None => "no song yapping".to_string(),
+    };
+    let bottom_text = format!(
+        "{} | {} | {} | {}",
+        mode_text, view_text, playing_text, hints
+    );
 
     let status = Paragraph::new(bottom_text)
-        .block(Block::default().title("Now Playing").borders(Borders::ALL));
+        .block(Block::default().title("Music-TUI").borders(Borders::ALL));
 
     frame.render_widget(status, chunks[1]);
 }

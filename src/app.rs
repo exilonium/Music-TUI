@@ -9,6 +9,8 @@ pub enum Action {
     SubmitSearch,
     InputChar(char),
     BackSpace,
+    SwitchResultView,
+    SwitchQueueView,
     None,
 }
 
@@ -17,12 +19,18 @@ pub enum InputMode {
     Search,
 }
 
+pub enum View {
+    Results,
+    Queue,
+}
+
 pub struct App<'a> {
     pub items: Vec<&'a str>,
     pub list_state: ListState,
     pub input_mode: InputMode,
     pub input: String,
     pub now_playing: Option<&'a str>,
+    pub current_view: View,
 }
 
 impl<'a> App<'a> {
@@ -36,6 +44,7 @@ impl<'a> App<'a> {
             input_mode: InputMode::Normal,
             input: String::new(),
             now_playing: None,
+            current_view: View::Queue,
         }
     }
     pub fn next(&mut self) {
@@ -83,6 +92,8 @@ impl<'a> App<'a> {
                 Action::Up => self.prev(),
                 Action::EnterSearch => self.input_mode = InputMode::Search,
                 Action::SubmitSearch => self.play_selected(),
+                Action::SwitchResultView => self.current_view = View::Results,
+                Action::SwitchQueueView => self.current_view = View::Queue,
                 _ => {}
             },
             InputMode::Search => match action {

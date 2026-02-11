@@ -32,6 +32,8 @@ fn main() -> anyhow::Result<()> {
                     KeyCode::Char('q') => Action::Quit,
                     KeyCode::Char('j') | KeyCode::Down => Action::Down,
                     KeyCode::Char('k') | KeyCode::Up => Action::Up,
+                    KeyCode::Char('1') => Action::SwitchQueueView,
+                    KeyCode::Char('2') => Action::SwitchResultView,
                     KeyCode::Esc => Action::ExitSearch,
                     KeyCode::Enter => Action::SubmitSearch,
                     KeyCode::Char(c) => Action::InputChar(c),

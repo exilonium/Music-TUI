@@ -25,7 +25,7 @@ fn main() -> anyhow::Result<()> {
 
         // input handling
         #[allow(clippy::collapsible_if)]
-        if event::poll(Duration::from_millis(200))? {
+        if event::poll(Duration::from_secs(1))? {
             if let Event::Key(key) = event::read()? {
                 let action = match key.code {
                     KeyCode::Char('/') => Action::EnterSearch,
@@ -44,6 +44,8 @@ fn main() -> anyhow::Result<()> {
                     break;
                 }
             }
+        } else {
+            app.handle_action(Action::Tick);
         }
     }
     // std::thread::sleep(std::time::Duration::from_secs(3));

@@ -11,6 +11,7 @@ pub enum Action {
     BackSpace,
     SwitchResultView,
     SwitchQueueView,
+    Tick,
     None,
 }
 
@@ -94,6 +95,7 @@ impl<'a> App<'a> {
                 Action::SubmitSearch => self.play_selected(),
                 Action::SwitchResultView => self.current_view = View::Results,
                 Action::SwitchQueueView => self.current_view = View::Queue,
+                Action::Tick => {}
                 _ => {}
             },
             InputMode::Search => match action {

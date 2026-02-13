@@ -7,12 +7,42 @@ use crate::app::{App, InputMode, View};
 
 pub fn draw(frame: &mut Frame, app: &mut App) {
     let area = frame.area();
-
-    let chunks = Layout::default()
+    let root = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([Constraint::Min(1), Constraint::Length(3)])
+        .constraints([
+            Constraint::Length(1), // Title
+            Constraint::Length(3), // Search
+            Constraint::Min(10),   // Main content grows
+            Constraint::Length(6), // Playing panel bottom
+        ])
         .split(area);
 
+    let main_chunks = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([Constraint::Length(30), Constraint::Min(0)])
+        .split(root[2]);
+
+    let sidebar_chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Length(8), // Library
+            Constraint::Min(0),    // Playlists
+        ])
+        .split(main_chunks[0]);
+
+    let header = Block::default()
+        .title("Music-TUI")
+        .title_alignment(Alignment::Center);
+    frame.render_widget(header, root[0]);
+
+    let search = Block::default().title("Search").borders(Borders::ALL);
+    frame.render_widget(search, root[1]);
+    let test_lib = vec!["Tracks", "Albums", "Artists", "Play Queue"];
+    let lib = List::new(test_lib).block(Block::default().title("Library").borders(Borders::ALL));
+    frame.render_widget(lib, sidebar_chunks[0]);
+
+    let playlists = Block::default().title("Playlists").borders(Borders::ALL);
+    frame.render_widget(playlists, sidebar_chunks[1]);
     match app.current_view {
         View::Queue => {
             let items: Vec<ListItem> = app
@@ -28,38 +58,51 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
                 )
                 .highlight_style(Style::default().add_modifier(Modifier::REVERSED))
                 .highlight_symbol(">> ");
-            frame.render_stateful_widget(list, chunks[0], &mut app.list_state.clone());
+            frame.render_stateful_widget(list, main_chunks[1], &mut app.list_state.clone());
         }
         View::Results => {
             let block = Block::default()
                 .title("Music-TUI (1- Queue, 2* Results)")
                 .borders(Borders::ALL);
-            frame.render_widget(block, chunks[0]);
+            frame.render_widget(block, main_chunks[1]);
         }
     }
-    let mode_text = match app.input_mode {
-        InputMode::Normal => "Normal",
-        InputMode::Search => "Search",
-    };
-    let view_text = match app.current_view {
-        View::Results => "Results",
-        View::Queue => "Queue",
-    };
-    let hints = match app.input_mode {
-        InputMode::Normal => "j/k move • / search • Enter play • 1/2 switch view • q quit",
-        InputMode::Search => "Type to search • Enter submit • Esc cancel",
-    };
-    let playing_text = match &app.now_playing {
-        Some(song) => format!("🎧 {} - {} [{}s]", song.artist, song.title, app.playback_seconds),
-        None => "no song yapping".to_string(),
-    };
-    let bottom_text = format!(
-        "{} | {} | {} | {}",
-        mode_text, view_text, playing_text, hints
-    );
 
-    let status = Paragraph::new(bottom_text)
-        .block(Block::default().title("Music-TUI").borders(Borders::ALL));
+    let mode = match app.input_mode {
+        InputMode::Normal => " NORMAL ",
+        InputMode::Search => " SEARCH ",
+    };
 
-    frame.render_widget(status, chunks[1]);
+    let view = match app.current_view {
+        View::Results => "RESULTS",
+        View::Queue => "QUEUE",
+    };
+
+    let playing = match &app.now_playing {
+        Some(song) => format!("▶ {} - {}", song.artist, song.title),
+        None => "▶ nothing".to_string(),
+    };
+
+    // show hints ONLY when searching (very vim)
+    let hint = match app.input_mode {
+        InputMode::Normal => "",
+        InputMode::Search => "  enter:confirm  esc:cancel",
+    };
+
+    let status_line = Line::from(vec![
+        Span::styled(
+            mode,
+            Style::default().add_modifier(Modifier::BOLD | Modifier::REVERSED),
+        ),
+        Span::raw(" "),
+        Span::styled(view, Style::default().add_modifier(Modifier::BOLD)),
+        Span::raw(" | "),
+        Span::raw(playing),
+        Span::raw(" "),
+        Span::styled(hint, Style::default().add_modifier(Modifier::DIM)),
+    ]);
+
+    let status = Paragraph::new(status_line).block(Block::default().borders(Borders::ALL));
+
+    frame.render_widget(status, root[3]);
 }

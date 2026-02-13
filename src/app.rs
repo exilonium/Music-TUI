@@ -1,6 +1,9 @@
 use ratatui::widgets::ListState;
+use tokio::sync::mpsc;
 
-use crate::api::songs::{Song, search};
+use crate::api::songs::{Song, SongWithUrl, get_song_with_url, search};
+use crate::player;
+use crate::player::mpv::Player;
 
 pub enum Action {
     Quit,
@@ -14,9 +17,13 @@ pub enum Action {
     SwitchResultView,
     SwitchQueueView,
     Tick,
+    TogglePause,
     None,
 }
 
+pub enum AppEvent {
+    StartedPlayback(SongWithUrl),
+}
 pub enum InputMode {
     Normal,
     Search,
@@ -35,10 +42,12 @@ pub struct App {
     pub now_playing: Option<Song>,
     pub current_view: View,
     pub playback_seconds: u64,
+    pub player: Player,
+    pub tx: mpsc::UnboundedSender<AppEvent>, // its for the communication (i guess i dont understand it fully)
 }
 
 impl App {
-    pub fn new() -> Self {
+    pub fn new(tx: mpsc::UnboundedSender<AppEvent>) -> Self {
         // let items = vec!["coffee", "Ghost", "Understand", "CHIHIRO"];
         // let mut list_state = ListState::default();
         // list_state.select(Some(0));
@@ -50,6 +59,8 @@ impl App {
             now_playing: None,
             current_view: View::Queue,
             playback_seconds: 0,
+            player: Player::new(),
+            tx,
         }
     }
     pub fn next(&mut self) {
@@ -86,13 +97,19 @@ impl App {
     pub async fn handle_action(&mut self, action: Action) -> bool {
         match self.input_mode {
             InputMode::Normal => match action {
-                Action::Quit => return true,
+                Action::Quit => {
+                    self.player.stop();
+                    return true;
+                }
                 Action::Down => self.next(),
                 Action::Up => self.prev(),
                 Action::EnterSearch => self.input_mode = InputMode::Search,
                 Action::SubmitSearch => self.play_selected(),
                 Action::SwitchResultView => self.current_view = View::Results,
                 Action::SwitchQueueView => self.current_view = View::Queue,
+                Action::TogglePause => {
+                    let _ = self.player.toggle_pause();
+                }
                 Action::Tick => {
                     if self.now_playing.is_some() {
                         self.playback_seconds += 1;
@@ -116,10 +133,16 @@ impl App {
         }
         false
     }
-    fn play_selected(&mut self) {
+    pub fn play_selected(&mut self) {
         if let Some(i) = self.list_state.selected() {
-            self.now_playing = Some(self.items[i].clone());
-            self.playback_seconds = 0; // this is basically a timer reset
+            let song = self.items[i].clone();
+            let tx = self.tx.clone();
+
+            tokio::spawn(async move {
+                if let Ok(data) = get_song_with_url(&song, 320).await {
+                    let _ = tx.send(AppEvent::StartedPlayback(data));
+                }
+            });
         }
     }
 }

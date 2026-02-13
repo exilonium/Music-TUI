@@ -1,5 +1,6 @@
 mod api;
 mod app;
+mod player;
 mod ui;
 use app::{Action, App};
 
@@ -18,11 +19,21 @@ async fn main() -> anyhow::Result<()> {
     let mut stdout = io::stdout();
     execute!(stdout, EnterAlternateScreen)?;
 
+    let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel();
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
-    let mut app = App::new();
+    let mut app = App::new(tx);
 
     loop {
+        while let Ok(event) = rx.try_recv() {
+            match event {
+                app::AppEvent::StartedPlayback(data) => {
+                    app.now_playing = Some(data.song.clone());
+                    app.playback_seconds = 0;
+                    let _ = app.player.play(&data.stream_url);
+                }
+            }
+        }
         terminal.draw(|frame| ui::draw(frame, &mut app))?;
 
         // input handling
@@ -36,6 +47,7 @@ async fn main() -> anyhow::Result<()> {
                     KeyCode::Char('k') | KeyCode::Up => Action::Up,
                     KeyCode::Char('1') => Action::SwitchQueueView,
                     KeyCode::Char('2') => Action::SwitchResultView,
+                    KeyCode::Char('p') | KeyCode::Char(' ') => Action::TogglePause,
                     KeyCode::Esc => Action::ExitSearch,
                     KeyCode::Enter => Action::SubmitSearch,
                     KeyCode::Char(c) => Action::InputChar(c),

@@ -35,7 +35,9 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
         .title_alignment(Alignment::Center);
     frame.render_widget(header, root[0]);
 
-    let search = Block::default().title("Search").borders(Borders::ALL);
+    let search = Paragraph::new(app.input.as_str())
+        .block(Block::default().title("Search").borders(Borders::ALL));
+
     frame.render_widget(search, root[1]);
     let test_lib = vec!["Tracks", "Albums", "Artists", "Play Queue"];
     let lib = List::new(test_lib).block(Block::default().title("Library").borders(Borders::ALL));

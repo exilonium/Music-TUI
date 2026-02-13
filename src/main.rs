@@ -12,8 +12,6 @@ use crossterm::{
     terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
 };
 
-use crate::api::songs::search_and_get_url;
-
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     enable_raw_mode()?;

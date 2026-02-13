@@ -75,12 +75,13 @@ pub async fn search(query: &str) -> Result<Vec<Song>> {
         "https://www.jiosaavn.com/api.php?p=1&q={}&_format=json&_marker=0&api_version=4&ctx=web6dot0&n=20&__call=search.getResults",
         encoded_query
     );
-    let response = reqwest::get(&url).await?.json::<ApiResponse>().await?;
     let client = Client::builder()
         .user_agent(
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/121.0",
         )
         .build()?;
+    let response = client.get(&url).send().await?.json::<ApiResponse>().await?;
+
     let results = response.results;
 
     let songs = results

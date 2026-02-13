@@ -56,8 +56,5 @@ async fn main() -> anyhow::Result<()> {
     disable_raw_mode()?;
     execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
     terminal.show_cursor()?;
-
-    let song = search_and_get_url("dandelions", 360).await?;
-    println!("{}", song.stream_url);
     Ok(())
 }

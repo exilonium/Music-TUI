@@ -55,10 +55,10 @@ impl App {
     pub fn next(&mut self) {
         let i = match self.list_state.selected() {
             Some(i) => {
-                if i >= self.items.len() - 1 {
-                    i
+                if !self.items.is_empty() {
+                    if i >= self.items.len() - 1 { i } else { i + 1 }
                 } else {
-                    i + 1
+                    0
                 }
             }
             None => 0,

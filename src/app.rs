@@ -1,5 +1,7 @@
 use ratatui::widgets::ListState;
 
+use crate::api::songs::{Song, search};
+
 pub enum Action {
     Quit,
     Down,
@@ -25,24 +27,24 @@ pub enum View {
     Queue,
 }
 
-pub struct App<'a> {
-    pub items: Vec<&'a str>,
+pub struct App {
+    pub items: Vec<Song>,
     pub list_state: ListState,
     pub input_mode: InputMode,
     pub input: String,
-    pub now_playing: Option<&'a str>,
+    pub now_playing: Option<Song>,
     pub current_view: View,
     pub playback_seconds: u64,
 }
 
-impl<'a> App<'a> {
+impl App {
     pub fn new() -> Self {
-        let items = vec!["coffee", "Ghost", "Understand", "CHIHIRO"];
-        let mut list_state = ListState::default();
-        list_state.select(Some(0));
+        // let items = vec!["coffee", "Ghost", "Understand", "CHIHIRO"];
+        // let mut list_state = ListState::default();
+        // list_state.select(Some(0));
         Self {
-            items,
-            list_state,
+            items: vec![],
+            list_state: ListState::default(),
             input_mode: InputMode::Normal,
             input: String::new(),
             now_playing: None,
@@ -76,18 +78,12 @@ impl<'a> App<'a> {
         };
         self.list_state.select(Some(i));
     }
-    pub fn perform_search(&mut self) {
+    pub async fn perform_search(&mut self, query: &str) {
         // some fake place holder results
-        self.items = vec![
-            "dzanum",
-            "never gonna give you up",
-            "somebody that i used to know",
-            "Angel with shotgun",
-        ];
-        //reset selection
+        self.items = search(query).await.unwrap_or_default();
         self.list_state.select(Some(0));
     }
-    pub fn handle_action(&mut self, action: Action) -> bool {
+    pub async fn handle_action(&mut self, action: Action) -> bool {
         match self.input_mode {
             InputMode::Normal => match action {
                 Action::Quit => return true,
@@ -107,7 +103,7 @@ impl<'a> App<'a> {
             InputMode::Search => match action {
                 Action::ExitSearch => self.input_mode = InputMode::Normal,
                 Action::SubmitSearch => {
-                    self.perform_search();
+                    self.perform_search(&self.input.clone()).await;
                     self.input.clear();
                     self.input_mode = InputMode::Normal;
                 }
@@ -122,7 +118,7 @@ impl<'a> App<'a> {
     }
     fn play_selected(&mut self) {
         if let Some(i) = self.list_state.selected() {
-            self.now_playing = Some(self.items[i]);
+            self.now_playing = Some(self.items[i].clone());
             self.playback_seconds = 0; // this is basically a timer reset
         }
     }

@@ -15,11 +15,15 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
 
     match app.current_view {
         View::Queue => {
-            let items: Vec<ListItem> = app.items.iter().map(|i| ListItem::new(*i)).collect();
+            let items: Vec<ListItem> = app
+                .items
+                .iter()
+                .map(|i| ListItem::new(format!("{} - {}", i.artist, i.title)))
+                .collect();
             let list = List::new(items)
                 .block(
                     Block::default()
-                        .title("Music-TUI (1* Queue, 2- Results")
+                        .title("Music-TUI (1* Queue, 2- Results)")
                         .borders(Borders::all()),
                 )
                 .highlight_style(Style::default().add_modifier(Modifier::REVERSED))
@@ -28,8 +32,7 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
         }
         View::Results => {
             let block = Block::default()
-                .title("Music-TUI (1- Queue, 2* Results")
-                .borders(Borders::all())
+                .title("Music-TUI (1- Queue, 2* Results)")
                 .borders(Borders::ALL);
             frame.render_widget(block, chunks[0]);
         }
@@ -46,8 +49,8 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
         InputMode::Normal => "j/k move • / search • Enter play • 1/2 switch view • q quit",
         InputMode::Search => "Type to search • Enter submit • Esc cancel",
     };
-    let playing_text = match app.now_playing {
-        Some(song) => format!("🎧 {} [{}s]", song, app.playback_seconds),
+    let playing_text = match &app.now_playing {
+        Some(song) => format!("🎧 {} - {} [{}s]", song.artist, song.title, app.playback_seconds),
         None => "no song yapping".to_string(),
     };
     let bottom_text = format!(

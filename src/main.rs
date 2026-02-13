@@ -12,6 +12,8 @@ use crossterm::{
     terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
 };
 
+use crate::api::songs::search_and_get_url;
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     enable_raw_mode()?;
@@ -42,12 +44,12 @@ async fn main() -> anyhow::Result<()> {
                     KeyCode::Backspace => Action::BackSpace,
                     _ => Action::None,
                 };
-                if app.handle_action(action) {
+                if app.handle_action(action).await {
                     break;
                 }
             }
         } else {
-            app.handle_action(Action::Tick);
+            app.handle_action(Action::Tick).await;
         }
     }
     // std::thread::sleep(std::time::Duration::from_secs(3));
@@ -55,8 +57,7 @@ async fn main() -> anyhow::Result<()> {
     execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
     terminal.show_cursor()?;
 
-    // just for testing that the api stuff works
-    let songs = api::songs::search("lofi").await?;
-    println!("{:#?}", songs);
+    let song = search_and_get_url("dandelions", 360).await?;
+    println!("{}", song.stream_url);
     Ok(())
 }

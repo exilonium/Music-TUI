@@ -38,6 +38,17 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
     let search = Paragraph::new(app.input.as_str())
         .block(Block::default().title("Search").borders(Borders::ALL));
 
+    let search_area = root[1];
+    match app.input_mode {
+        InputMode::Normal => {}
+        InputMode::Search => {
+            frame.set_cursor_position((
+                search_area.x + 1 + app.input.len() as u16,
+                search_area.y + 1,
+            ));
+        }
+    }
+
     frame.render_widget(search, root[1]);
     let test_lib = vec!["Tracks", "Albums", "Artists", "Play Queue"];
     let lib = List::new(test_lib).block(Block::default().title("Library").borders(Borders::ALL));

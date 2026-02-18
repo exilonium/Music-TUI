@@ -1,6 +1,6 @@
 use ratatui::{
     prelude::*,
-    widgets::{Block, Borders, List, ListItem, Paragraph},
+    widgets::{Block, Borders, Gauge, List, ListItem, Paragraph},
 };
 
 use crate::app::{App, InputMode, View};
@@ -29,6 +29,16 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
             Constraint::Min(0),    // Playlists
         ])
         .split(main_chunks[0]);
+
+    let player_block = Block::default().title("Now Playing").borders(Borders::ALL);
+
+    let inner = player_block.inner(root[3]);
+
+    frame.render_widget(player_block, root[3]);
+    let player_chunk = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([Constraint::Length(2), Constraint::Length(4)])
+        .split(inner);
 
     let header = Block::default()
         .title("Music-TUI")
@@ -115,7 +125,36 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
         Span::styled(hint, Style::default().add_modifier(Modifier::DIM)),
     ]);
 
-    let status = Paragraph::new(status_line).block(Block::default().borders(Borders::ALL));
+    let status = Paragraph::new(status_line).block(Block::default().borders(Borders::NONE));
 
-    frame.render_widget(status, root[3]);
+    frame.render_widget(status, player_chunk[0]);
+    let (progress, label) = if let Some(song) = &app.now_playing {
+        let duration = song.duration;
+
+        if duration > 0 {
+            let ratio = (app.playback_seconds as f64 / duration as f64).clamp(0.0, 1.0);
+
+            let label = format!(
+                "{:02}:{:02}/{:02}:{:02}",
+                app.playback_seconds / 60,
+                app.playback_seconds % 60,
+                duration / 60,
+                duration % 60,
+            );
+
+            (ratio, label)
+        } else {
+            (0.0, "00:00/00:00".to_string())
+        }
+    } else {
+        (0.0, "00:00/00:00".to_string())
+    };
+
+    let seek_bar = Gauge::default()
+        .block(Block::default().borders(Borders::NONE))
+        .gauge_style(Style::default().fg(Color::Green))
+        .ratio(progress)
+        .label(label);
+
+    frame.render_widget(seek_bar, player_chunk[1]);
 }

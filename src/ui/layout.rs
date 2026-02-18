@@ -21,7 +21,7 @@ pub fn split(area: Rect) -> Areas {
 
     let main_chunks = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([Constraint::Length(30), Constraint::Min(0)])
+        .constraints([Constraint::Percentage(35), Constraint::Min(0)])
         .split(root[2]);
 
     Areas {
@@ -32,4 +32,3 @@ pub fn split(area: Rect) -> Areas {
         player: root[3],
     }
 }
-

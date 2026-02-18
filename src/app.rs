@@ -2,7 +2,6 @@ use ratatui::widgets::ListState;
 use tokio::sync::mpsc;
 
 use crate::api::songs::{Song, SongWithUrl, get_song_with_url, search};
-use crate::player;
 use crate::player::mpv::Player;
 
 pub enum Action {

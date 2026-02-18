@@ -13,6 +13,8 @@ use crossterm::{
     terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
 };
 
+use crate::app::InputMode;
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     enable_raw_mode()?;
@@ -40,19 +42,25 @@ async fn main() -> anyhow::Result<()> {
         #[allow(clippy::collapsible_if)]
         if event::poll(Duration::from_secs(1))? {
             if let Event::Key(key) = event::read()? {
-                let action = match key.code {
-                    KeyCode::Char('/') => Action::EnterSearch,
-                    KeyCode::Char('q') => Action::Quit,
-                    KeyCode::Char('j') | KeyCode::Down => Action::Down,
-                    KeyCode::Char('k') | KeyCode::Up => Action::Up,
-                    KeyCode::Char('1') => Action::SwitchQueueView,
-                    KeyCode::Char('2') => Action::SwitchResultView,
-                    KeyCode::Char('p') | KeyCode::Char(' ') => Action::TogglePause,
-                    KeyCode::Esc => Action::ExitSearch,
-                    KeyCode::Enter => Action::SubmitSearch,
-                    KeyCode::Char(c) => Action::InputChar(c),
-                    KeyCode::Backspace => Action::BackSpace,
-                    _ => Action::None,
+                let action = match app.input_mode {
+                    InputMode::Search => match key.code {
+                        KeyCode::Esc => Action::ExitSearch,
+                        KeyCode::Enter => Action::SubmitSearch,
+                        KeyCode::Backspace => Action::BackSpace,
+                        KeyCode::Char(c) => Action::InputChar(c),
+                        _ => Action::None,
+                    },
+                    InputMode::Normal => match key.code {
+                        KeyCode::Enter => Action::SubmitSearch,
+                        KeyCode::Char('/') => Action::EnterSearch,
+                        KeyCode::Char('q') => Action::Quit,
+                        KeyCode::Char('j') | KeyCode::Down => Action::Down,
+                        KeyCode::Char('k') | KeyCode::Up => Action::Up,
+                        KeyCode::Char('1') => Action::SwitchQueueView,
+                        KeyCode::Char('2') => Action::SwitchResultView,
+                        KeyCode::Char('p') | KeyCode::Char(' ') => Action::TogglePause,
+                        _ => Action::None,
+                    },
                 };
                 if app.handle_action(action).await {
                     break;

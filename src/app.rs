@@ -110,7 +110,7 @@ impl App {
                     let _ = self.player.toggle_pause();
                 }
                 Action::Tick => {
-                    if self.now_playing.is_some() {
+                    if self.now_playing.is_some() && self.player.playing {
                         self.playback_seconds += 1;
                     }
                 }

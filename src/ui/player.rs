@@ -17,6 +17,7 @@ pub fn render(frame: &mut Frame, app: &App, area: Rect) {
     render_progress(frame, app, chunks[1]);
 }
 
+#[allow(dead_code)]
 fn render_status(frame: &mut Frame, app: &App, area: Rect) {
     let playing = match &app.now_playing {
         Some(song) => format!("▶ {} - {}", song.artist, song.title),

@@ -8,6 +8,7 @@ pub struct Song {
     pub id: String,
     pub title: String,
     pub artist: String,
+    #[allow(dead_code)]
     pub album: String,
     pub duration: u64,
 }
@@ -212,6 +213,7 @@ pub async fn get_song_with_url(song: &Song, bitrate: u32) -> Result<SongWithUrl>
     })
 }
 
+#[allow(dead_code)]
 pub async fn search_and_get_url(query: &str, bitrate: u32) -> Result<SongWithUrl> {
     let songs = search(query).await?;
     let song = songs

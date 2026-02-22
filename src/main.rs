@@ -59,6 +59,8 @@ async fn main() -> anyhow::Result<()> {
                         KeyCode::Char('1') => Action::SwitchQueueView,
                         KeyCode::Char('2') => Action::SwitchResultView,
                         KeyCode::Char('p') | KeyCode::Char(' ') => Action::TogglePause,
+                        KeyCode::Char('f') | KeyCode::Right => Action::SeekForward,
+                        KeyCode::Char('b') | KeyCode::Left => Action::SeekBackward,
                         _ => Action::None,
                     },
                 };

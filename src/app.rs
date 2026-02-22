@@ -17,6 +17,8 @@ pub enum Action {
     SwitchQueueView,
     Tick,
     TogglePause,
+    SeekForward,
+    SeekBackward,
     None,
 }
 
@@ -108,6 +110,12 @@ impl App {
                 Action::SwitchQueueView => self.current_view = View::Queue,
                 Action::TogglePause => {
                     let _ = self.player.toggle_pause();
+                }
+                Action::SeekForward => {
+                    let _ = self.player.seek(true);
+                }
+                Action::SeekBackward => {
+                    let _ = self.player.seek(false);
                 }
                 Action::Tick => {
                     if self.now_playing.is_some() && self.player.playing {

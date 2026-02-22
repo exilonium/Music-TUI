@@ -64,7 +64,7 @@ impl Player {
         Ok(())
     }
 
-    pub fn seek(&mut self, forward: bool) -> Result<()> {
+    pub fn seek(&mut self, forward: bool) -> Result<i64> {
         let socket = self
             .socket
             .as_mut()
@@ -76,7 +76,7 @@ impl Player {
         };
         socket.write_all(cmd.as_bytes())?;
         socket.write_all(b"\n")?;
-        Ok(())
+        Ok(if forward { 5 } else { -5 })
     }
 
     fn connect_socket() -> Result<UnixStream> {

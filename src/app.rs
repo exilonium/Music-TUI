@@ -111,15 +111,30 @@ impl App {
                 Action::TogglePause => {
                     let _ = self.player.toggle_pause();
                 }
+                //saturating_sub and saturating_add is there to prevent overflow and underflow
                 Action::SeekForward => {
-                    let _ = self.player.seek(true);
+                    if let Ok(delta) = self.player.seek(true) {
+                        self.playback_seconds = self.playback_seconds.saturating_add(delta as u64);
+                    }
                 }
                 Action::SeekBackward => {
-                    let _ = self.player.seek(false);
+                    if let Ok(delta) = self.player.seek(false) {
+                        self.playback_seconds =
+                            self.playback_seconds.saturating_sub(delta.unsigned_abs());
+                    }
                 }
                 Action::Tick => {
-                    if self.now_playing.is_some() && self.player.playing {
-                        self.playback_seconds += 1;
+                    // basically increment the time if the song is playing and not ended
+                    if self.player.playing
+                        && let Some(song) = &self.now_playing
+                    {
+                        if self.playback_seconds < song.duration {
+                            self.playback_seconds += 1;
+                        } else {
+                            // song finished
+                            self.player.stop();
+                            self.now_playing = None;
+                        }
                     }
                 }
                 _ => {}

@@ -4,35 +4,24 @@ use ratatui::{prelude::*, widgets::*};
 
 pub fn render(frame: &mut Frame, app: &App, area: Rect) {
     let player_block = Block::default().title("Now Playing").borders(Borders::ALL);
-
     let inner = player_block.inner(area);
     frame.render_widget(player_block, area);
 
     let chunks = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([Constraint::Length(2), Constraint::Length(4)])
+        .constraints([Constraint::Length(1), Constraint::Min(1)])
         .split(inner);
 
     status::render(frame, app, chunks[0]);
     render_progress(frame, app, chunks[1]);
 }
 
-#[expect(dead_code)]
-fn render_status(frame: &mut Frame, app: &App, area: Rect) {
-    let playing = match &app.now_playing {
-        Some(song) => format!("▶ {} - {}", song.artist, song.title),
-        None => "▶ nothing".to_string(),
-    };
-
-    let status = Paragraph::new(playing);
-    frame.render_widget(status, area);
-}
-
 fn render_progress(frame: &mut Frame, app: &App, area: Rect) {
     let (ratio, label) = calculate_progress(app);
-
-    let gauge = Gauge::default().ratio(ratio).label(label);
-
+    let gauge = Gauge::default()
+        .ratio(ratio)
+        .label(label)
+        .gauge_style(Style::default().fg(Color::Blue));
     frame.render_widget(gauge, area);
 }
 

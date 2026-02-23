@@ -1,4 +1,5 @@
 use anyhow::Result;
+use html_escape::decode_html_entities;
 use reqwest::Client;
 use serde::Deserialize;
 use urlencoding::encode;
@@ -108,12 +109,11 @@ pub async fn search(query: &str) -> Result<Vec<Song>> {
                 .and_then(|mi| mi.duration.as_ref())
                 .and_then(|d| d.parse::<u64>().ok())
                 .unwrap_or(0);
-
             Song {
                 id: s.id,
-                title: s.title,
-                artist,
-                album,
+                title: decode_html_entities(&s.title).to_string(),
+                artist: decode_html_entities(&artist).to_string(),
+                album: decode_html_entities(&album).to_string(),
                 duration,
             }
         })
